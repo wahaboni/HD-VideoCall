@@ -43,7 +43,9 @@ nginx -T > "$BACKUP_DIR/nginx-T.txt" 2>/dev/null || true
 ok "backup: $BACKUP_DIR"
 
 # Catat vhost mana yang saat ini memegang $DOMAIN, supaya rollback presisi.
-grep -rl "server_name.*\b$DOMAIN\b" /etc/nginx/sites-enabled/ 2>/dev/null \
+# -R wajib: isi /etc/nginx/sites-enabled/ adalah symlink, dan `grep -r`
+# melewati symlink sehingga vhost lama tidak terdeteksi.
+grep -Rl "server_name.*\b$DOMAIN\b" /etc/nginx/sites-enabled/ 2>/dev/null \
   > "$BACKUP_DIR/previous-sites.txt" || true
 if [ -s "$BACKUP_DIR/previous-sites.txt" ]; then
   warn "vhost lama untuk $DOMAIN:"
@@ -59,30 +61,76 @@ chmod 644 "$TARGET"
 ok "$TARGET"
 
 say "4/6 Nonaktifkan vhost lama untuk domain yang sama"
+# PENTING: nginx memakai glob `include sites-enabled/*`, dan glob itu cocok
+# dengan SEMUA nama termasuk `*.disabled`. Jadi file harus DIPINDAHKAN keluar
+# dari sites-enabled, bukan hanya di-rename.
+: > "$BACKUP_DIR/disabled-sites.txt"
 if [ -s "$BACKUP_DIR/previous-sites.txt" ]; then
   while IFS= read -r old; do
     [ "$(readlink -f "$old")" = "$(readlink -f "$TARGET")" ] && continue
-    rm -f "$old"
-    ok "dinonaktifkan: $old (file tetap ada di $BACKUP_DIR)"
+    name="$(basename "$old")"
+    dest="/etc/nginx/sites-available/$name.disabled"
+
+    # Simpan path asli supaya rollback bisa membuat symlink-nya lagi.
+    printf '%s\n' "$old" >> "$BACKUP_DIR/disabled-sites.txt"
+
+    if [ -L "$old" ]; then
+      target_file="$(readlink -f "$old")"
+      mv "$target_file" "$dest"   # file asli disimpan, isi tidak diubah
+      rm -f "$old"
+    else
+      mv "$old" "$dest"
+    fi
+    ok "dinonaktifkan: $name -> $dest (isi file utuh)"
   done < "$BACKUP_DIR/previous-sites.txt"
 else
   ok "tidak ada yang perlu dinonaktifkan"
 fi
 
 say "5/6 Uji konfigurasi"
+restore_previous() {
+  # Kembalikan vhost yang tadi dinonaktifkan.
+  if [ -s "$BACKUP_DIR/disabled-sites.txt" ]; then
+    while IFS= read -r orig; do
+      name="$(basename "$orig")"
+      [ -f "/etc/nginx/sites-available/$name.disabled" ] &&
+        mv "/etc/nginx/sites-available/$name.disabled" "/etc/nginx/sites-available/$name"
+      ln -sfn "/etc/nginx/sites-available/$name" "$orig"
+    done < "$BACKUP_DIR/disabled-sites.txt"
+  fi
+  rm -f "$LINK" "$TARGET"
+}
+
 if ! nginx -t 2>&1 | tail -3; then
   warn "nginx -t gagal — mengembalikan konfigurasi lama"
-  rm -f "$LINK" "$TARGET"
-  cp -a "$BACKUP_DIR/sites-enabled/." /etc/nginx/sites-enabled/ 2>/dev/null || true
-  cp -a "$BACKUP_DIR/sites-available/." /etc/nginx/sites-available/ 2>/dev/null || true
+  restore_previous
   nginx -t || die "konfigurasi lama pun gagal — periksa manual"
   die "dibatalkan, konfigurasi lama dipulihkan"
 fi
 ok "nginx -t lolos"
 
+# Konflik server_name berarti vhost lama masih aktif dan akan "mencuri"
+# domain ini (nginx memakai yang pertama dimuat, sisanya di-ignore).
+if nginx -T 2>&1 | grep -q "[Cc]onflicting server name"; then
+  warn "masih ada 'conflicting server name' — vhost lama belum nonaktif:"
+  nginx -T 2>&1 | grep "[Cc]onflicting server name" | sed 's/^/    /'
+  warn "mengembalikan konfigurasi lama"
+  restore_previous
+  nginx -t >/dev/null && systemctl reload nginx
+  die "berhenti; cek 'sites-enabled' untuk vhost lain yang memakai domain ini"
+fi
+
 say "6/6 Reload nginx"
 systemctl reload nginx
 ok "nginx reloaded"
+
+say "Verifikasi lalu lintas"
+# Pastikan domain benar-benar dilayani stack ini, bukan app lain.
+if curl -s -k --max-time 10 -H "Host: $DOMAIN" "https://127.0.0.1/" | grep -q "HD Video Call"; then
+  ok "https://$DOMAIN/ -> app HD Video Call"
+else
+  warn "domain belum mengarah ke app ini — cek 'nginx -T' untuk vhost lain"
+fi
 
 cat <<EOF
 

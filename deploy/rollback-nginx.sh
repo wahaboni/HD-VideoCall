@@ -23,6 +23,18 @@ say "Memulihkan dari $BACKUP_DIR"
 
 rm -f /etc/nginx/sites-enabled/hdvc /etc/nginx/sites-available/hdvc
 
+# Aktifkan kembali vhost yang dinonaktifkan install-nginx-site.sh.
+if [ -f "$BACKUP_DIR/disabled-sites.txt" ]; then
+  while IFS= read -r orig; do
+    name="$(basename "$orig")"
+    if [ -f "/etc/nginx/sites-available/$name.disabled" ]; then
+      mv "/etc/nginx/sites-available/$name.disabled" "/etc/nginx/sites-available/$name"
+    fi
+    ln -sfn "/etc/nginx/sites-available/$name" "$orig"
+    ok "diaktifkan kembali: $orig -> /etc/nginx/sites-available/$name"
+  done < "$BACKUP_DIR/disabled-sites.txt"
+fi
+
 [ -d "$BACKUP_DIR/sites-available" ] && cp -a "$BACKUP_DIR/sites-available/." /etc/nginx/sites-available/
 [ -d "$BACKUP_DIR/sites-enabled" ]   && cp -a "$BACKUP_DIR/sites-enabled/."   /etc/nginx/sites-enabled/
 ok "file konfigurasi lama dipulihkan"
