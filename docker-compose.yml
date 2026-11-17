@@ -1,0 +1,113 @@
+# Stack HD Video Call: frontend(nginx) + backend(token) + livekit(media).
+#
+#   cp .env.example .env   # lalu isi DOMAIN, LIVEKIT_API_KEY, LIVEKIT_API_SECRET
+#   docker compose up -d --build
+#
+# Satu pintu masuk: nginx di container frontend melayani SPA, /api, dan /rtc.
+# LiveKit port 7880 sengaja TIDAK dipublikasikan; media lewat UDP.
+
+name: hdvc
+
+services:
+  livekit:
+    image: livekit/livekit-server:v1.13.11
+    container_name: hdvc-livekit
+    command: --config /etc/livekit.yaml
+    restart: unless-stopped
+    environment:
+      # LiveKit membaca kredensial dari env; format: "<key>: <secret>"
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in .env}: ${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in .env}"
+    volumes:
+      - ./livekit/livekit.yaml:/etc/livekit.yaml:ro
+    ports:
+      # Media UDP (mux). Harus sama dengan rtc.udp_port di livekit.yaml.
+      - "${LIVEKIT_UDP_RANGE:-50000-50040}:${LIVEKIT_UDP_RANGE:-50000-50040}/udp"
+      # ICE/TCP fallback. Trafik sudah terenkripsi (DTLS-SRTP).
+      - "${LIVEKIT_TCP_PORT:-7881}:7881/tcp"
+    networks:
+      - hdvc
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:7880/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+    container_name: hdvc-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      LIVEKIT_API_KEY: "${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in .env}"
+      LIVEKIT_API_SECRET: "${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in .env}"
+      # Browser memakai origin publik; nginx mem-proxy /rtc ke livekit:7880.
+      LIVEKIT_WS_URL: "${LIVEKIT_WS_URL:-ws://localhost}"
+      CORS_ORIGIN: "${CORS_ORIGIN:-http://localhost:5173}"
+      TOKEN_TTL: "${TOKEN_TTL:-6h}"
+    expose:
+      - "3001"
+    networks:
+      - hdvc
+    deploy:
+      resources:
+        limits:
+          memory: 192M
+    healthcheck:
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "fetch('http://127.0.0.1:3001/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Kosong = same-origin /api. Nilai final diambil dari env runtime
+        # (VITE_API_URL di .env) supaya ganti domain tidak perlu rebuild.
+        VITE_API_URL: ""
+    container_name: hdvc-frontend
+    restart: unless-stopped
+    environment:
+      DOMAIN: "${DOMAIN:-_}"
+      BACKEND_UPSTREAM: "backend:3001"
+      LIVEKIT_UPSTREAM: "livekit:7880"
+      NGINX_RESOLVER: "127.0.0.11"
+      # Hanya substitusi variabel milik kita, biarkan $host/$http_upgrade nginx.
+      NGINX_ENVSUBST_FILTER: "^(DOMAIN|BACKEND_UPSTREAM|LIVEKIT_UPSTREAM|NGINX_RESOLVER)$"
+      # Dibaca 50-runtime-config.sh saat container start -> /config.js.
+      VITE_API_URL: "${VITE_API_URL-}"
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+      livekit:
+        condition: service_started
+    networks:
+      - hdvc
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  hdvc:
+    driver: bridge

@@ -1,0 +1,20 @@
+{
+  "name": "hdvc-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Token server untuk HD Video Call (LiveKit)",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "livekit-server-sdk": "^2.20.0"
+  }
+}

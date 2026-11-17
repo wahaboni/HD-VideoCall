@@ -1,0 +1,12 @@
+# Dev: jalankan LiveKit Server saja (mode --dev: API key devkey / secret secret).
+#   docker compose -f livekit/docker-compose.yml up
+#
+# Mode --dev memakai host network agar UDP/ICE langsung terlihat client lokal,
+# meniru kondisi production.
+services:
+  livekit:
+    image: livekit/livekit-server:v1.13.11
+    container_name: hdvc-livekit-dev
+    command: --dev --bind 0.0.0.0
+    network_mode: host
+    restart: unless-stopped

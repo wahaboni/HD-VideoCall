@@ -1,0 +1,52 @@
+# LiveKit Server — konfigurasi production (single node, tanpa Redis).
+#
+# Kredensial TIDAK ditulis di sini. Berikan lewat environment:
+#   LIVEKIT_KEYS="<api-key>: <api-secret>"
+#
+# Jalankan: livekit-server --config /etc/livekit.yaml
+
+port: 7880
+bind_addresses:
+  - ""
+
+rtc:
+  # UDP mux: semua media lewat rentang port ini. Buka di firewall + docker.
+  # 1 vCPU tidak butuh rentang besar; 41 port sudah sangat longgar.
+  udp_port: 50000-50040
+
+  # Fallback ICE/TCP bila UDP diblokir jaringan client.
+  # Port ini TIDAK boleh di belakang TLS/load balancer (traffic sudah terenkripsi).
+  tcp_port: 7881
+
+  # Deteksi IP publik via STUN. Wajib untuk VPS di balik NAT cloud.
+  use_external_ip: true
+
+  # Uncomment bila STUN mendeteksi IP yang salah (mis. multi-NIC / NAT aneh):
+  # node_ip: 203.0.113.10
+  # use_external_ip: false
+
+# ---------------------------------------------------------------- TURN (opsional)
+# Aktifkan hanya bila peserta sering berada di jaringan kantor/kampus ketat
+# yang memblokir UDP keluar. Butuh sertifikat TLS untuk tls_port.
+# turn:
+#   enabled: true
+#   domain: video.example.com
+#   udp_port: 3478
+#   tls_port: 5349
+#   cert_file: /etc/livekit/certs/fullchain.pem
+#   key_file: /etc/livekit/certs/privkey.pem
+#   relay_range_start: 30000
+#   relay_range_end: 30040
+
+room:
+  # Room dibuat otomatis saat peserta pertama bergabung.
+  auto_create: true
+  # Peserta terakhir keluar -> room dibersihkan (hemat RAM di VPS kecil).
+  empty_timeout: 300
+  departure_timeout: 20
+
+logging:
+  level: info
+  pion_level: error
+
+# Tanpa Redis: single node. Skala horizontal butuh Redis + config berbeda.

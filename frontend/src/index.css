@@ -1,0 +1,53 @@
+@import "tailwindcss";
+@import "@livekit/components-styles";
+
+@theme {
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background-color: #070b14;
+}
+
+/* LiveKit dark theme tuning supaya menyatu dengan Tailwind. */
+[data-lk-theme="default"] {
+  --lk-bg: #0b0f1a;
+  --lk-bg2: #111827;
+  --lk-border-color: rgba(148, 163, 184, 0.18);
+  --lk-control-bg: #1e293b;
+  --lk-control-hover-bg: #334155;
+  --lk-control-active-bg: #4f46e5;
+  --lk-control-active-hover-bg: #4338ca;
+  --lk-accent-bg: #4f46e5;
+  --lk-accent-fg: #ffffff;
+  --lk-danger: #ef4444;
+  --lk-foreground: #e2e8f0;
+  --lk-border-radius: 0.75rem;
+}
+
+.lk-room-container {
+  background-color: #070b14;
+}
+
+.lk-chat {
+  background-color: #0b0f1a;
+}
+
+/* VideoConference mengisi tinggi penuh viewport. */
+.hdvc-room .lk-video-conference {
+  height: 100%;
+}
