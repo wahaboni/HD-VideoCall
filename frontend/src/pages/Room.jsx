@@ -16,7 +16,7 @@ function Connecting({ message }) {
   return (
     <div className="flex min-h-full flex-col items-center justify-center gap-4 px-6 text-center">
       <span className="h-8 w-8 animate-spin rounded-full border-2 border-brand-500/30 border-t-brand-400" aria-hidden="true" />
-      <p className="text-sm text-slate-400">{message}</p>
+      <p className="text-sm text-slate-500">{message}</p>
     </div>
   );
 }
@@ -80,7 +80,7 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
         <button
           type="button"
           onClick={onLeave}
-          className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+          className="rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600"
         >
           Ke lobby
         </button>
@@ -100,14 +100,14 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
               setCredentials(null);
               setError('');
             }}
-            className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+            className="rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600"
           >
             Coba lagi
           </button>
           <button
             type="button"
             onClick={onLeave}
-            className="rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-800"
+            className="rounded-xl border border-white/30 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-white/10"
           >
             Ke lobby
           </button>
@@ -121,8 +121,8 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
   }
 
   return (
-    <div className="hdvc-room relative flex h-full flex-col bg-[#070b14]">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 px-4 py-2.5">
+    <div className="hdvc-room relative flex h-full flex-col bg-slate-900">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/20 bg-white/10 px-4 py-2.5 backdrop-blur-2xl">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400/60" aria-hidden="true" />
           <div className="min-w-0">
@@ -141,23 +141,23 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
               type="button"
               onClick={() => setShowInfo((open) => !open)}
               aria-expanded={showInfo}
-              className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="rounded-lg border border-white/30 bg-white/10 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-white/20 hover:text-white"
             >
               Bagikan
             </button>
             {showInfo && (
-              <div className="absolute right-0 top-full z-30 mt-2 w-72 rounded-xl border border-slate-700 bg-slate-900 p-3 shadow-xl">
-                <p className="mb-2 text-xs text-slate-400">Link room (tanpa nama):</p>
+              <div className="absolute right-0 top-full z-30 mt-2 w-72 rounded-xl border border-white/50 bg-white/80 p-3 shadow-xl backdrop-blur-2xl">
+                <p className="mb-2 text-xs text-slate-600">Link room (tanpa nama):</p>
                 <input
                   readOnly
                   value={roomLink({ room, quality })}
                   onFocus={(event) => event.currentTarget.select()}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-[11px] text-slate-300"
+                  className="w-full rounded-lg border border-slate-300 bg-white/70 px-2 py-1.5 font-mono text-[11px] text-slate-800"
                 />
                 <button
                   type="button"
                   onClick={() => navigator.clipboard?.writeText(roomLink({ room, quality }))}
-                  className="mt-2 w-full rounded-lg bg-brand-600 px-2 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
+                  className="mt-2 w-full rounded-lg bg-indigo-500 px-2 py-1.5 text-xs font-semibold text-white hover:bg-indigo-600"
                 >
                   Salin link
                 </button>
@@ -168,7 +168,7 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
           <button
             type="button"
             onClick={handleDisconnect}
-            className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20"
+            className="rounded-lg border border-red-400/40 bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-200 hover:bg-red-500/30"
           >
             Keluar
           </button>
