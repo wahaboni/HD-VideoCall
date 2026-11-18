@@ -9,9 +9,11 @@ export default function QualityToggle({ value, onChange, disabled = false, compa
     <div
       role="radiogroup"
       aria-label="Kualitas video"
-      className={`inline-grid grid-flow-col gap-1 rounded-xl border border-slate-700/60 bg-slate-900/70 p-1 ${
-        compact ? 'text-xs' : 'text-sm'
-      }`}
+      className={`inline-grid grid-flow-col gap-1 rounded-xl border p-1 backdrop-blur-xl ${
+        compact
+          ? 'border-white/20 bg-white/10'
+          : 'border-white/60 bg-white/50'
+      } ${compact ? 'text-xs' : 'text-sm'}`}
     >
       {QUALITY_KEYS.map((key) => {
         const preset = QUALITY_PRESETS[key];
@@ -26,8 +28,12 @@ export default function QualityToggle({ value, onChange, disabled = false, compa
             onClick={() => onChange(key)}
             className={`rounded-lg px-3 py-1.5 font-medium transition ${
               active
-                ? 'bg-brand-600 text-white shadow-sm shadow-brand-600/30'
-                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                ? compact
+                  ? 'bg-white/90 text-indigo-600'
+                  : 'bg-white text-indigo-600 shadow-sm'
+                : compact
+                  ? 'text-slate-300 hover:bg-white/10 hover:text-white'
+                  : 'text-slate-600 hover:bg-white/60 hover:text-slate-900'
             } disabled:cursor-not-allowed disabled:opacity-50`}
           >
             {compact ? key.toUpperCase() : preset.label}

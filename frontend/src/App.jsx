@@ -9,8 +9,8 @@ const Room = lazy(() => import('./pages/Room.jsx'));
 function RoomFallback() {
   return (
     <div className="flex min-h-full flex-col items-center justify-center gap-4">
-      <span className="h-8 w-8 animate-spin rounded-full border-2 border-brand-500/30 border-t-brand-400" aria-hidden="true" />
-      <p className="text-sm text-slate-400">Memuat ruang meeting…</p>
+      <span className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-300 border-t-indigo-500" aria-hidden="true" />
+      <p className="text-sm text-slate-500">Memuat ruang meeting…</p>
     </div>
   );
 }
