@@ -18,6 +18,12 @@ export default function QualityToggle({ value, onChange, disabled = false, compa
       {QUALITY_KEYS.map((key) => {
         const preset = QUALITY_PRESETS[key];
         const active = value === key;
+        const activeCls = compact
+          ? 'bg-white/90 text-indigo-600'
+          : 'bg-white text-indigo-600 shadow-sm';
+        const idleCls = compact
+          ? 'text-slate-300 hover:bg-white/10 hover:text-white'
+          : 'text-slate-600 hover:bg-white/60 hover:text-slate-900';
         return (
           <button
             key={key}
@@ -27,13 +33,7 @@ export default function QualityToggle({ value, onChange, disabled = false, compa
             disabled={disabled}
             onClick={() => onChange(key)}
             className={`rounded-lg px-3 py-1.5 font-medium transition ${
-              active
-                ? compact
-                  ? 'bg-white/90 text-indigo-600'
-                  : 'bg-white text-indigo-600 shadow-sm'
-                : compact
-                  ? 'text-slate-300 hover:bg-white/10 hover:text-white'
-                  : 'text-slate-600 hover:bg-white/60 hover:text-slate-900'
+              active ? activeCls : idleCls
             } disabled:cursor-not-allowed disabled:opacity-50`}
           >
             {compact ? key.toUpperCase() : preset.label}

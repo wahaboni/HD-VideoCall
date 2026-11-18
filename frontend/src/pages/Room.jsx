@@ -15,7 +15,7 @@ import { roomLink } from '../lib/hashRoute.js';
 function Connecting({ message }) {
   return (
     <div className="flex min-h-full flex-col items-center justify-center gap-4 px-6 text-center">
-      <span className="h-8 w-8 animate-spin rounded-full border-2 border-brand-500/30 border-t-brand-400" aria-hidden="true" />
+      <span className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500/30 border-t-indigo-400" aria-hidden="true" />
       <p className="text-sm text-slate-500">{message}</p>
     </div>
   );
@@ -72,7 +72,7 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
 
   if (!name) {
     return (
-      <div className="flex min-h-full flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex min-h-full flex-col items-center justify-center gap-4 bg-slate-900 px-6 text-center">
         <h1 className="text-lg font-semibold text-white">Nama belum diisi</h1>
         <p className="max-w-sm text-sm text-slate-400">
           Link room ini tidak menyertakan nama. Masukkan nama di lobby untuk bergabung.
@@ -90,7 +90,7 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
 
   if (error) {
     return (
-      <div className="flex min-h-full flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex min-h-full flex-col items-center justify-center gap-4 bg-slate-900 px-6 text-center">
         <h1 className="text-lg font-semibold text-white">Gagal bergabung ke room</h1>
         <p className="max-w-md text-sm text-red-300">{error}</p>
         <div className="flex gap-2">
@@ -127,7 +127,7 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
           <span className="flex h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400/60" aria-hidden="true" />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-white">
-              Room <span className="font-mono text-brand-300">{room}</span>
+              Room <span className="font-mono text-indigo-300">{room}</span>
             </p>
             <p className="truncate text-xs text-slate-500">
               {name} · {preset.label} @{preset.frameRate}fps
