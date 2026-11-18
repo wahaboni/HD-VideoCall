@@ -100,32 +100,33 @@ export default function Lobby({ onJoin }) {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
       >
-        <div className="absolute -top-32 left-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-brand-600/20 blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
+        <div className="absolute -top-32 left-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-indigo-400/30 blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 h-64 w-64 rounded-full bg-pink-300/25 blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-sky-300/25 blur-3xl" />
       </div>
 
       <section className="relative w-full max-w-xl">
         <header className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600/15 ring-1 ring-brand-500/40">
-            <svg viewBox="0 0 24 24" className="h-7 w-7 text-brand-300" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/60 ring-1 ring-white/70">
+            <svg viewBox="0 0 24 24" className="h-7 w-7 text-indigo-500" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
               <rect x="2.5" y="6" width="13" height="12" rx="3" />
               <path d="M15.5 11l5-3v8l-5-3z" strokeLinejoin="round" />
             </svg>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
             HD Video Call
           </h1>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-sm text-slate-600">
             Masukkan nama dan kode room untuk memulai panggilan video berkualitas HD.
           </p>
         </header>
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-5 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur"
+          className="space-y-5 rounded-2xl border border-white/60 bg-white/60 p-6 shadow-2xl shadow-indigo-500/10 backdrop-blur-2xl"
         >
           <div className="space-y-2">
-            <label htmlFor={nameId} className="block text-sm font-medium text-slate-200">
+            <label htmlFor={nameId} className="block text-sm font-medium text-slate-700">
               Nama kamu
             </label>
             <input
@@ -141,15 +142,15 @@ export default function Lobby({ onJoin }) {
               }}
               placeholder="Contoh: Budi"
               aria-invalid={name.length > 0 && !nameOk}
-              className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              className="w-full rounded-xl border border-white/70 bg-white/70 px-4 py-2.5 text-slate-900 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
             />
             {name.length > 0 && !nameOk && (
-              <p className="text-xs text-amber-400">Nama harus 1–40 karakter.</p>
+              <p className="text-xs text-red-600">Nama harus 1–40 karakter.</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <label htmlFor={roomId} className="block text-sm font-medium text-slate-200">
+            <label htmlFor={roomId} className="block text-sm font-medium text-slate-700">
               Kode room
             </label>
             <div className="flex gap-2">
@@ -169,13 +170,13 @@ export default function Lobby({ onJoin }) {
                 }}
                 placeholder="kode-room"
                 aria-invalid={room.length > 0 && !roomOk}
-                className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-2.5 font-mono text-sm tracking-wide text-slate-100 placeholder:text-slate-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                className="w-full rounded-xl border border-white/70 bg-white/70 px-4 py-2.5 font-mono text-sm tracking-wide text-slate-900 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
               />
               <button
                 type="button"
                 onClick={handleRegenerate}
                 title="Buat kode room baru"
-                className="shrink-0 rounded-xl border border-slate-700 bg-slate-800/80 px-3 text-slate-300 transition hover:bg-slate-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                className="shrink-0 rounded-xl border border-white/70 bg-white/60 px-3 text-slate-600 transition hover:bg-white/80 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
               >
                 <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                   <path d="M20 11a8 8 0 10-2.3 5.7" strokeLinecap="round" />
@@ -190,7 +191,7 @@ export default function Lobby({ onJoin }) {
           </div>
 
           <div className="space-y-2">
-            <span className="block text-sm font-medium text-slate-200">Kualitas video</span>
+            <span className="block text-sm font-medium text-slate-700">Kualitas video</span>
             <QualityToggle value={quality} onChange={handleQuality} disabled={loading} />
             <p className="text-xs text-slate-500">
               Simulcast, dynacast, dan adaptiveStream aktif otomatis untuk menghemat bandwidth.
@@ -198,7 +199,7 @@ export default function Lobby({ onJoin }) {
           </div>
 
           {error && (
-            <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            <div role="alert" className="rounded-xl border border-red-400/40 bg-red-100/60 px-4 py-3 text-sm text-red-700">
               {error}
             </div>
           )}
@@ -206,7 +207,7 @@ export default function Lobby({ onJoin }) {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:bg-slate-300/70 disabled:text-slate-500"
           >
             {loading ? (
               <>
