@@ -7,12 +7,14 @@ import {
   RoomAudioRenderer,
   useTracks,
   useLocalParticipant,
+  useRoomContext,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import QualityToggle from '../components/QualityToggle.jsx';
 import { qualityForNetwork, roomOptions, qualityPreset, videoCaptureDefaults } from '../lib/quality.js';
 import { getToken } from '../lib/api.js';
 import { roomLink } from '../lib/hashRoute.js';
+import { stopMediaTracks } from '../lib/media.js';
 
 /**
  * @param {{token: string|undefined, wsUrl: string|undefined}} data
@@ -105,6 +107,26 @@ function ParticipantGrid() {
       </div>
     </div>
   );
+}
+
+function RoomMediaCleanup() {
+  const roomContext = useRoomContext();
+  const { localParticipant } = useLocalParticipant();
+
+  useEffect(() => () => {
+    const tracks = [...(localParticipant?.videoTrackPublications?.values?.() ?? [])]
+      .concat([...((localParticipant?.audioTrackPublications?.values?.() ?? []))])
+      .map((publication) => publication.track?.mediaStreamTrack)
+      .filter(Boolean);
+    stopMediaTracks(tracks);
+    try {
+      roomContext.disconnect(true);
+    } catch {
+      // Room mungkin sudah disconnected oleh server.
+    }
+  }, [localParticipant, roomContext]);
+
+  return null;
 }
 
 /**
@@ -279,12 +301,14 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
             videoCaptureDefaults: options.videoCaptureDefaults,
             screenShareCaptureDefaults: options.screenShareCaptureDefaults,
             publishDefaults: options.publishDefaults,
+            stopLocalTrackOnUnpublish: true,
           }}
           onDisconnected={handleDisconnect}
           onError={(err) => setError(err?.message || 'Koneksi ke server media terputus.')}
           data-lk-theme="default"
           className="h-full"
         >
+          <RoomMediaCleanup />
           {quality === 'auto' && <AutoQualityController onQuality={setActiveQuality} />}
           <ParticipantGrid />
           <RoomAudioRenderer />
