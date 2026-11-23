@@ -1,7 +1,8 @@
 /**
  * Identity stabil untuk Room. Quality berubah sebagai prop, bukan lifecycle key.
- * @param {{room?: string}} route
+ * Nama masuk key: ganti nama = ganti identitas LiveKit = reconnect.
+ * @param {{room?: string, name?: string}} route
  */
-export function roomRenderKey({ room = '' } = {}) {
-  return String(room);
+export function roomRenderKey({ room = '', name = '' } = {}) {
+  return `${room}:${name}`;
 }

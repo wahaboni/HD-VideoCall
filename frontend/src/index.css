@@ -84,13 +84,28 @@ input:focus-visible {
 }
 
 .lk-chat {
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(15, 23, 42, 0.88);
+  color: #e2e8f0;
   backdrop-filter: blur(24px);
 }
 
 /* VideoConference mengisi tinggi penuh viewport. */
 .hdvc-room .lk-video-conference {
   height: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.hdvc-room {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.hdvc-room .lk-room-container,
+.hdvc-room .lk-grid-layout {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .hdvc-conference {
@@ -98,8 +113,10 @@ input:focus-visible {
   position: relative;
   display: flex;
   width: 100%;
+  max-width: 100%;
   height: 100%;
   min-height: 0;
+  min-width: 0;
   flex-direction: column;
   overflow: hidden;
 }
@@ -108,19 +125,23 @@ input:focus-visible {
   display: grid;
   flex: 1 1 auto;
   width: 100%;
+  max-width: 100%;
   height: 100%;
   min-height: 0;
+  min-width: 0;
   grid-template-columns: minmax(0, 1fr);
   grid-auto-rows: minmax(0, 1fr);
   align-content: center;
   gap: 0.5rem;
   padding: 0.5rem;
   overflow: auto;
+  overflow-x: hidden;
 }
 
 .hdvc-room .hdvc-participant-grid > .lk-participant-tile {
   width: 100%;
   height: 100%;
+  max-width: 100%;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -130,6 +151,7 @@ input:focus-visible {
 .hdvc-room .hdvc-participant-grid video {
   width: 100%;
   height: 100%;
+  max-width: 100%;
   object-fit: cover;
 }
 
@@ -159,12 +181,38 @@ input:focus-visible {
 .hdvc-room .hdvc-chat-panel {
   position: absolute;
   z-index: 20;
-  inset: 0.75rem 0.75rem 4.5rem auto;
+  inset-block: 0.75rem 4.5rem;
+  inset-inline: 0.75rem auto;
   width: min(22rem, calc(100% - 1.5rem));
-  height: auto;
+  max-width: min(22rem, calc(100% - 1.5rem));
+  min-width: 0;
+  min-height: 0;
+  max-height: calc(100% - 5.25rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: 1rem;
   box-shadow: 0 24px 60px rgba(2, 6, 23, 0.6);
+  backdrop-filter: blur(24px);
+}
+
+.hdvc-room .hdvc-chat-panel .lk-chat-header {
+  flex: 0 0 auto;
+}
+
+.hdvc-room .hdvc-chat-panel .lk-chat-list {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.hdvc-room .hdvc-chat-panel .lk-chat-entry {
+  flex: 0 0 auto;
+}
+
+.hdvc-room .hdvc-chat-panel * {
+  min-width: 0;
 }
 
 @container (max-width: 520px) {

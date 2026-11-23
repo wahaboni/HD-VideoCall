@@ -15,6 +15,73 @@ import { qualityForNetwork, roomOptions, qualityPreset, videoCaptureDefaults } f
 import { getToken } from '../lib/api.js';
 import { roomLink } from '../lib/hashRoute.js';
 import { stopMediaTracks } from '../lib/media.js';
+import { cleanDisplayName, shouldChangeName } from '../lib/roomForm.js';
+import { NAME_COOKIE, readCookie, writeCookie } from '../lib/cookieStore.js';
+
+/**
+ * Form nama saat masuk lewat link share tanpa nama.
+ * @param {{room: string, onJoin: (name: string) => void}} props
+ */
+function NameGate({ room, onJoin }) {
+  const [name, setName] = useState(() => sanitize(readInitialName()));
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const nameOk = cleanDisplayName(name).length > 0;
+
+  function sanitize(value) {
+    return typeof value === 'string' ? value.replace(/[\u0000-\u001f\u007f<>]/g, '') : '';
+  }
+  function readInitialName() {
+    return readCookie(NAME_COOKIE) ?? '';
+  }
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const clean = cleanDisplayName(name);
+    if (!clean || loading) return;
+    setLoading(true);
+    setError('');
+    Promise.resolve(onJoin(clean)).catch(() => {
+      setError('Gagal bergabung. Coba lagi.');
+    }).finally(() => setLoading(false));
+  };
+
+  return (
+    <div className="flex min-h-full flex-col items-center justify-center gap-4 bg-slate-900 px-6 text-center">
+      <h1 className="text-lg font-semibold text-white">Masuk ke room <span className="font-mono text-cyan-300">{room}</span></h1>
+      <p className="max-w-sm text-sm text-slate-400">
+        Link ini tidak menyertakan nama. Isi nama kamu untuk bergabung.
+      </p>
+      <form onSubmit={handleSubmit} className="flex w-full max-w-xs flex-col gap-3">
+        <input
+          type="text"
+          autoComplete="name"
+          maxLength={40}
+          value={name}
+          onChange={(event) => {
+            setName(sanitize(event.target.value));
+            setError('');
+          }}
+          placeholder="Contoh: Budi"
+          aria-invalid={name.length > 0 && !nameOk}
+          autoFocus
+          className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-slate-100 placeholder:text-slate-600 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 aria-invalid:border-red-400"
+        />
+        {name.length > 0 && !nameOk && (
+          <p className="text-xs text-red-400">Nama harus 1–40 karakter.</p>
+        )}
+        {error && <p className="text-xs text-red-400">{error}</p>}
+        <button
+          type="submit"
+          disabled={!nameOk || loading}
+          className="rounded-xl bg-cyan-400 px-4 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-500"
+        >
+          {loading ? 'Menghubungkan…' : 'Gabung Video Call'}
+        </button>
+      </form>
+    </div>
+  );
+}
 
 /**
  * @param {{token: string|undefined, wsUrl: string|undefined}} data
@@ -136,14 +203,19 @@ function RoomMediaCleanup() {
  *   quality: string,
  *   session: {token: string, wsUrl: string} | null,
  *   onLeave: () => void,
- *   onQualityChange: (quality: string) => void
+ *   onQualityChange: (quality: string) => void,
+ *   onNameChange: (name: string) => Promise<void> | void
  * }} props
  */
-export default function Room({ room, name, quality, session, onLeave, onQualityChange }) {
+export default function Room({ room, name, quality, session, onLeave, onQualityChange, onNameChange }) {
   const [credentials, setCredentials] = useState(session);
   const [error, setError] = useState('');
   const [connecting, setConnecting] = useState(!session);
   const [showInfo, setShowInfo] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [draftName, setDraftName] = useState(name);
+  const [renaming, setRenaming] = useState(false);
+  const [renameError, setRenameError] = useState('');
   const abortRef = useRef(null);
   const preset = qualityPreset(quality === 'auto' ? '720p' : quality);
   const [activeQuality, setActiveQuality] = useState(quality === 'auto' ? '720p' : quality);
@@ -177,6 +249,20 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
     onLeave();
   }, [onLeave]);
 
+  const handleRename = useCallback(async () => {
+    if (!shouldChangeName({ current: name, next: draftName }) || renaming) return;
+    setRenaming(true);
+    setRenameError('');
+    try {
+      await onNameChange(cleanDisplayName(draftName));
+      setEditingName(false);
+    } catch (err) {
+      setRenameError(err?.message || 'Gagal mengganti nama.');
+    } finally {
+      setRenaming(false);
+    }
+  }, [draftName, name, onNameChange, renaming]);
+
   const options = roomOptions(quality);
 
   useEffect(() => {
@@ -185,19 +271,13 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
 
   if (!name) {
     return (
-      <div className="flex min-h-full flex-col items-center justify-center gap-4 bg-slate-900 px-6 text-center">
-        <h1 className="text-lg font-semibold text-white">Nama belum diisi</h1>
-        <p className="max-w-sm text-sm text-slate-400">
-          Link room ini tidak menyertakan nama. Masukkan nama di lobby untuk bergabung.
-        </p>
-        <button
-          type="button"
-          onClick={onLeave}
-          className="rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600"
-        >
-          Ke lobby
-        </button>
-      </div>
+      <NameGate
+        room={room}
+        onJoin={(cleanName) => {
+          writeCookie(NAME_COOKIE, cleanName);
+          return onNameChange(cleanName);
+        }}
+      />
     );
   }
 
@@ -243,7 +323,69 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
               Room <span className="font-mono text-cyan-300">{room}</span>
             </p>
             <p className="truncate text-xs text-slate-500">
-              <span className="text-slate-400">{name}</span> · {quality === 'auto' ? <span className="text-cyan-300">AUTO · {qualityPreset(activeQuality).label}</span> : preset.label}
+              {editingName ? (
+                <span className="inline-flex flex-wrap items-center gap-1.5">
+                  <input
+                    type="text"
+                    maxLength={40}
+                    value={draftName}
+                    onChange={(event) => {
+                      setDraftName(event.target.value);
+                      setRenameError('');
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        handleRename();
+                      }
+                      if (event.key === 'Escape') {
+                        setEditingName(false);
+                        setDraftName(name);
+                        setRenameError('');
+                      }
+                    }}
+                    autoFocus
+                    aria-label="Nama baru"
+                    className="w-36 rounded-lg border border-slate-600 bg-slate-950 px-2 py-1 text-xs text-slate-100 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRename}
+                    disabled={renaming || !shouldChangeName({ current: name, next: draftName })}
+                    className="rounded-lg bg-cyan-400 px-2 py-1 text-[11px] font-bold text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-500"
+                  >
+                    {renaming ? '…' : 'Simpan'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingName(false);
+                      setDraftName(name);
+                      setRenameError('');
+                    }}
+                    className="rounded-lg border border-slate-600 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:bg-slate-800"
+                  >
+                    Batal
+                  </button>
+                  {renameError && <span className="text-[11px] text-red-400">{renameError}</span>}
+                </span>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDraftName(name);
+                      setEditingName(true);
+                    }}
+                    title="Ubah nama"
+                    className="text-slate-400 underline decoration-slate-600 decoration-dotted underline-offset-2 hover:text-cyan-200"
+                  >
+                    {name}
+                  </button>
+                  {' · '}
+                  {quality === 'auto' ? <span className="text-cyan-300">AUTO · {qualityPreset(activeQuality).label}</span> : preset.label}
+                </>
+              )}
             </p>
           </div>
         </div>

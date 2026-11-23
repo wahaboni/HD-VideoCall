@@ -2,6 +2,8 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react
 import Lobby from './pages/Lobby.jsx';
 import { parseHash, buildHash } from './lib/hashRoute.js';
 import { roomRenderKey } from './lib/appState.js';
+import { getToken } from './lib/api.js';
+import { writeCookie, NAME_COOKIE } from './lib/cookieStore.js';
 
 // LiveKit components berat (~250 kB gzip). Lobby tetap ringan;
 // bundle room baru diunduh saat user benar-benar bergabung.
@@ -52,6 +54,13 @@ export default function App() {
         if (route.view !== 'room') return;
         navigate({ ...route, quality });
       },
+      async onNameChange(nextName) {
+        if (route.view !== 'room') return;
+        const { token, wsUrl } = await getToken({ room: route.room, username: nextName });
+        writeCookie(NAME_COOKIE, nextName);
+        setSession({ token, wsUrl });
+        navigate({ ...route, name: nextName });
+      },
     }),
     [navigate, route],
   );
@@ -68,11 +77,12 @@ export default function App() {
             session={session}
             onLeave={handlers.onLeave}
             onQualityChange={handlers.onQualityChange}
+            onNameChange={handlers.onNameChange}
           />
         </Suspense>
       </div>
     );
   }
 
-  return <div className="hdvc-app-shell min-h-full"><Lobby initialQuality={route.quality} onJoin={handlers.onJoin} /></div>;
+  return <div className="hdvc-app-shell min-h-full"><Lobby initialQuality={route.quality} initialRoom={route.view === 'room' ? route.room : ''} onJoin={handlers.onJoin} /></div>;
 }

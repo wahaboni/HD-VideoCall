@@ -13,35 +13,34 @@ import {
   sanitizeUsernameInput,
 } from '../lib/room.js';
 import { getToken } from '../lib/api.js';
+import { NAME_COOKIE, readCookie, writeCookie, rememberRoom, readRoomHistory } from '../lib/cookieStore.js';
 
-const NAME_STORAGE_KEY = 'hdvc.username';
+const QUALITY_COOKIE = 'hdvc.quality';
 
 function readStored(key, fallback) {
-  try {
-    return globalThis.localStorage?.getItem(key) ?? fallback;
-  } catch {
-    return fallback;
-  }
+  const value = readCookie(key);
+  return value === null ? fallback : value;
 }
 
 function writeStored(key, value) {
-  try {
-    globalThis.localStorage?.setItem(key, value);
-  } catch {
-    /* localStorage diblokir: abaikan */
-  }
+  writeCookie(key, value);
 }
 
 /**
- * @param {{onJoin: (payload: {room: string, name: string, quality: string, token: string, wsUrl: string}) => void}} props
+ * @param {{
+ *   initialQuality?: string,
+ *   initialRoom?: string,
+ *   onJoin: (payload: {room: string, name: string, quality: string, token: string, wsUrl: string}) => void
+ * }} props
  */
-export default function Lobby({ onJoin }) {
+export default function Lobby({ initialQuality, initialRoom = '', onJoin }) {
   const nameId = useId();
   const roomId = useId();
 
   const [name, setName] = useState(() => sanitizeUsernameInput(readStored(NAME_STORAGE_KEY, '')));
-  const [room, setRoom] = useState(() => generateRoomCode());
+  const [room, setRoom] = useState(() => (isValidRoomCode(initialRoom) ? initialRoom : generateRoomCode()));
   const [quality, setQuality] = useState(() => normalizeQuality(readStored(QUALITY_STORAGE_KEY, DEFAULT_QUALITY)));
+  const [history, setHistory] = useState(() => readRoomHistory());
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const abortRef = useRef(null);
@@ -55,6 +54,11 @@ export default function Lobby({ onJoin }) {
   const handleQuality = useCallback((next) => {
     setQuality(next);
     writeStored(QUALITY_STORAGE_KEY, next);
+  }, []);
+
+  const handlePickHistory = useCallback((code) => {
+    setRoom(code);
+    setError('');
   }, []);
 
   const handleRegenerate = useCallback(() => {
@@ -83,6 +87,7 @@ export default function Lobby({ onJoin }) {
           signal: controller.signal,
         });
         writeStored(NAME_STORAGE_KEY, cleanName);
+        rememberRoom(cleanRoom);
         onJoin({ room: cleanRoom, name: cleanName, quality, token, wsUrl });
       } catch (err) {
         if (err?.name === 'AbortError') return;
@@ -188,6 +193,21 @@ export default function Lobby({ onJoin }) {
             <p className="text-xs text-slate-500">
               Bagikan kode ini ke orang lain. Huruf kecil, angka, dan tanda hubung.
             </p>
+            {history.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[11px] text-slate-500">Terbaru:</span>
+                {history.map((code) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => handlePickHistory(code)}
+                    className="rounded-lg border border-slate-700 bg-slate-900/70 px-2 py-0.5 font-mono text-[11px] tracking-wide text-cyan-200 transition hover:border-cyan-400/60 hover:bg-cyan-400/10"
+                  >
+                    {code}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

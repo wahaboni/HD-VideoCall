@@ -33,7 +33,6 @@ export const DEFAULT_QUALITY = '720p';
 export const AUTO_QUALITY = 'auto';
 export const QUALITY_KEYS = Object.freeze([AUTO_QUALITY, '720p', '1080p']);
 export const QUALITY_STORAGE_KEY = 'hdvc.quality';
-
 /**
  * @param {unknown} value
  * @returns {'720p'|'1080p'}
