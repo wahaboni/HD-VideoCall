@@ -6,6 +6,8 @@ import {
   normalizeQuality,
   videoCaptureDefaults,
   roomOptions,
+  qualityForNetwork,
+  qualityPreset,
 } from '../src/lib/quality.js';
 
 test('default kualitas 720p', () => {
@@ -34,11 +36,35 @@ test('preset 1080p = 1920x1080 @30fps', () => {
   });
 });
 
+test('preset 360p hemat bandwidth', () => {
+  assert.deepEqual(QUALITY_PRESETS['360p'], {
+    key: '360p',
+    label: 'Low 360p',
+    width: 640,
+    height: 360,
+    frameRate: 24,
+    maxBitrate: 700_000,
+  });
+});
+
 test('normalizeQuality fallback ke 720p', () => {
   assert.equal(normalizeQuality('1080p'), '1080p');
   assert.equal(normalizeQuality('720p'), '720p');
   assert.equal(normalizeQuality('4k'), '720p');
   assert.equal(normalizeQuality(undefined), '720p');
+  assert.equal(normalizeQuality('auto'), 'auto');
+});
+
+test('AUTO mulai 720p dan turun satu tier saat jaringan buruk', () => {
+  assert.equal(qualityForNetwork({ packetLoss: 0, rtt: 80 }), '720p');
+  assert.equal(qualityForNetwork({ packetLoss: 0.1, rtt: 80, current: '720p' }), '360p');
+  assert.equal(qualityForNetwork({ packetLoss: 0.1, rtt: 80, current: '1080p' }), '720p');
+});
+
+test('AUTO naik satu tier hanya saat jaringan stabil', () => {
+  assert.equal(qualityForNetwork({ packetLoss: 0.01, rtt: 100, current: '720p' }), '1080p');
+  assert.equal(qualityForNetwork({ packetLoss: 0.03, rtt: 100, current: '720p' }), '720p');
+  assert.equal(qualityForNetwork({ packetLoss: undefined, rtt: undefined, current: '720p' }), '720p');
 });
 
 test('videoCaptureDefaults memakai resolusi preset', () => {
@@ -76,4 +102,8 @@ test('roomOptions 1080p punya layer sampai 1080p', () => {
 test('quality invalid tidak melempar error', () => {
   const options = roomOptions('bogus');
   assert.equal(options.videoCaptureDefaults.resolution.width, 1280);
+});
+
+test('qualityPreset AUTO memakai baseline 720p', () => {
+  assert.equal(qualityPreset('auto').key, '720p');
 });

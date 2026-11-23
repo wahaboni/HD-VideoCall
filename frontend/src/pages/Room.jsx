@@ -3,9 +3,10 @@ import {
   LiveKitRoom,
   VideoConference,
   RoomAudioRenderer,
+  useLocalParticipant,
 } from '@livekit/components-react';
 import QualityToggle from '../components/QualityToggle.jsx';
-import { roomOptions, qualityPreset } from '../lib/quality.js';
+import { qualityForNetwork, roomOptions, qualityPreset, videoCaptureDefaults } from '../lib/quality.js';
 import { getToken } from '../lib/api.js';
 import { roomLink } from '../lib/hashRoute.js';
 
@@ -19,6 +20,54 @@ function Connecting({ message }) {
       <p className="text-sm text-slate-500">{message}</p>
     </div>
   );
+}
+
+function AutoQualityController({ onQuality }) {
+  const { localParticipant } = useLocalParticipant();
+  const activeRef = useRef('720p');
+  const statsRef = useRef(null);
+  const changedAtRef = useRef(0);
+
+  useEffect(() => {
+    const timer = globalThis.setInterval(async () => {
+      if (!localParticipant) return;
+      try {
+        const report = await localParticipant?._room?.engine?.pcManager?.publisher?.getStats?.();
+        if (!report) return;
+        let packetsLost = 0;
+        let packetsSent = 0;
+        let rtt = 0;
+        report.forEach((stat) => {
+          if (stat.type === 'outbound-rtp' && stat.kind === 'video') {
+            packetsLost += stat.packetsLost || 0;
+            packetsSent += stat.packetsSent || 0;
+          }
+          if (stat.type === 'candidate-pair' && stat.currentRoundTripTime) {
+            rtt = Math.max(rtt, stat.currentRoundTripTime * 1000);
+          }
+        });
+        const previous = statsRef.current;
+        statsRef.current = { packetsLost, packetsSent };
+        if (!previous) return;
+        const sentDelta = packetsSent - previous.packetsSent;
+        const lostDelta = packetsLost - previous.packetsLost;
+        const packetLoss = sentDelta > 0 ? Math.max(0, lostDelta / (sentDelta + lostDelta)) : undefined;
+        const next = qualityForNetwork({ packetLoss, rtt, current: activeRef.current });
+        if (next === activeRef.current || Date.now() - changedAtRef.current < 15_000) return;
+        const publication = [...localParticipant.videoTrackPublications.values()]
+          .find((item) => item.source === 'camera' && item.track);
+        await publication?.track?.restartTrack(videoCaptureDefaults(next));
+        activeRef.current = next;
+        changedAtRef.current = Date.now();
+        onQuality(next);
+      } catch {
+        // Statistik tidak tersedia pada browser/transport tertentu.
+      }
+    }, 5_000);
+    return () => globalThis.clearInterval(timer);
+  }, [localParticipant, onQuality]);
+
+  return null;
 }
 
 /**
@@ -37,7 +86,8 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
   const [connecting, setConnecting] = useState(!session);
   const [showInfo, setShowInfo] = useState(false);
   const abortRef = useRef(null);
-  const preset = qualityPreset(quality);
+  const preset = qualityPreset(quality === 'auto' ? '720p' : quality);
+  const [activeQuality, setActiveQuality] = useState(quality === 'auto' ? '720p' : quality);
 
   // Refresh / buka link langsung: hash tidak membawa token, ambil dari server.
   useEffect(() => {
@@ -69,6 +119,10 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
   }, [onLeave]);
 
   const options = roomOptions(quality);
+
+  useEffect(() => {
+    setActiveQuality(quality === 'auto' ? '720p' : quality);
+  }, [quality]);
 
   if (!name) {
     return (
@@ -130,7 +184,7 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
               Room <span className="font-mono text-indigo-300">{room}</span>
             </p>
             <p className="truncate text-xs text-slate-500">
-              {name} · {preset.label} @{preset.frameRate}fps
+              {name} · {quality === 'auto' ? `AUTO · ${qualityPreset(activeQuality).label}` : `${preset.label} @${preset.frameRate}fps`}
             </p>
           </div>
         </div>
@@ -141,7 +195,7 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
               type="button"
               onClick={() => setShowInfo((open) => !open)}
               aria-expanded={showInfo}
-              className="rounded-lg border border-white/30 bg-white/10 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-white/20 hover:text-white"
+              className="rounded-lg border border-indigo-300/50 bg-indigo-500/80 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300/70"
             >
               Bagikan
             </button>
@@ -194,6 +248,7 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
           data-lk-theme="default"
           className="h-full"
         >
+          {quality === 'auto' && <AutoQualityController onQuality={setActiveQuality} />}
           <VideoConference />
           <RoomAudioRenderer />
         </LiveKitRoom>

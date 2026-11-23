@@ -1,4 +1,4 @@
-import { QUALITY_KEYS, QUALITY_PRESETS } from '../lib/quality.js';
+import { AUTO_QUALITY, QUALITY_KEYS, QUALITY_PRESETS } from '../lib/quality.js';
 
 /**
  * Segmented control untuk memilih kualitas video.
@@ -17,6 +17,7 @@ export default function QualityToggle({ value, onChange, disabled = false, compa
     >
       {QUALITY_KEYS.map((key) => {
         const preset = QUALITY_PRESETS[key];
+        const label = key === AUTO_QUALITY ? 'AUTO' : preset.label;
         const active = value === key;
         const activeCls = compact
           ? 'bg-white/90 text-indigo-600'
@@ -36,10 +37,10 @@ export default function QualityToggle({ value, onChange, disabled = false, compa
               active ? activeCls : idleCls
             } disabled:cursor-not-allowed disabled:opacity-50`}
           >
-            {compact ? key.toUpperCase() : preset.label}
-            <span className="ml-2 hidden text-[11px] font-normal text-slate-400 sm:inline">
+            {compact ? label : label}
+            {preset && <span className="ml-2 hidden text-[11px] font-normal text-slate-400 sm:inline">
               {preset.width}×{preset.height}
-            </span>
+            </span>}
           </button>
         );
       })}

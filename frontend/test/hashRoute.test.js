@@ -30,6 +30,11 @@ test('buildHash lalu parseHash round-trip', () => {
   assert.equal(route.quality, '1080p');
 });
 
+test('buildHash lalu parseHash mendukung AUTO', () => {
+  const route = parseHash(buildHash({ room: 'abc-123', quality: 'auto' }));
+  assert.equal(route.quality, 'auto');
+});
+
 test('buildHash meng-encode karakter khusus', () => {
   const hash = buildHash({ room: 'abc', name: 'A & B', quality: '720p' });
   assert.ok(!hash.includes('A & B'));
