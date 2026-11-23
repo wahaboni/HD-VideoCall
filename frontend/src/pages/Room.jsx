@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   LiveKitRoom,
-  VideoConference,
+  ParticipantTile,
+  ControlBar,
+  Chat,
   RoomAudioRenderer,
+  useTracks,
   useLocalParticipant,
 } from '@livekit/components-react';
+import { Track } from 'livekit-client';
 import QualityToggle from '../components/QualityToggle.jsx';
 import { qualityForNetwork, roomOptions, qualityPreset, videoCaptureDefaults } from '../lib/quality.js';
 import { getToken } from '../lib/api.js';
@@ -68,6 +72,39 @@ function AutoQualityController({ onQuality }) {
   }, [localParticipant, onQuality]);
 
   return null;
+}
+
+function ParticipantGrid() {
+  const tracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare]);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  return (
+    <div className="hdvc-conference">
+      <div className="lk-grid-layout hdvc-participant-grid">
+        {tracks.map((trackRef) => (
+          <ParticipantTile
+            key={`${trackRef.participant.identity}:${trackRef.source}`}
+            trackRef={trackRef}
+          />
+        ))}
+      </div>
+      {chatOpen && <Chat className="hdvc-chat-panel" />}
+      <div className="hdvc-control-bar">
+        <ControlBar
+          controls={{ microphone: true, camera: true, chat: false, screenShare: true, leave: false }}
+        />
+        <button
+          type="button"
+          aria-label={chatOpen ? 'Tutup chat' : 'Buka chat'}
+          aria-pressed={chatOpen}
+          onClick={() => setChatOpen((open) => !open)}
+          className="lk-button hdvc-chat-toggle"
+        >
+          Chat
+        </button>
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -249,7 +286,7 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
           className="h-full"
         >
           {quality === 'auto' && <AutoQualityController onQuality={setActiveQuality} />}
-          <VideoConference />
+          <ParticipantGrid />
           <RoomAudioRenderer />
         </LiveKitRoom>
       </div>
