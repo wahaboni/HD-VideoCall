@@ -16,6 +16,7 @@ import { getToken } from '../lib/api.js';
 import { NAME_COOKIE, readCookie, writeCookie, rememberRoom, readRoomHistory } from '../lib/cookieStore.js';
 
 const QUALITY_COOKIE = 'hdvc.quality';
+const NAME_STORAGE_KEY = NAME_COOKIE;
 
 function readStored(key, fallback) {
   const value = readCookie(key);
