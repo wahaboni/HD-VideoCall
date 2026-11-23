@@ -9,10 +9,10 @@ export default function QualityToggle({ value, onChange, disabled = false, compa
     <div
       role="radiogroup"
       aria-label="Kualitas video"
-      className={`inline-grid grid-flow-col gap-1 rounded-xl border p-1 backdrop-blur-xl ${
+      className={`inline-grid grid-flow-col gap-1 rounded-2xl border p-1 shadow-lg shadow-cyan-950/20 backdrop-blur-xl ${
         compact
-          ? 'border-white/20 bg-white/10'
-          : 'border-white/60 bg-white/50'
+          ? 'border-slate-700/80 bg-slate-950/70'
+          : 'border-slate-700 bg-slate-900/80'
       } ${compact ? 'text-xs' : 'text-sm'}`}
     >
       {QUALITY_KEYS.map((key) => {
@@ -20,11 +20,11 @@ export default function QualityToggle({ value, onChange, disabled = false, compa
         const label = key === AUTO_QUALITY ? 'AUTO' : preset.label;
         const active = value === key;
         const activeCls = compact
-          ? 'bg-white/90 text-indigo-600'
-          : 'bg-white text-indigo-600 shadow-sm';
+          ? 'bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20'
+          : 'bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20';
         const idleCls = compact
-          ? 'text-slate-300 hover:bg-white/10 hover:text-white'
-          : 'text-slate-600 hover:bg-white/60 hover:text-slate-900';
+          ? 'text-slate-400 hover:bg-slate-800 hover:text-cyan-200'
+          : 'text-slate-400 hover:bg-slate-800 hover:text-white';
         return (
           <button
             key={key}

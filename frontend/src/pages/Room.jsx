@@ -212,43 +212,43 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
   }
 
   return (
-    <div className="hdvc-room relative flex h-full flex-col bg-slate-900">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/20 bg-white/10 px-4 py-2.5 backdrop-blur-2xl">
+    <div className="hdvc-room relative flex h-full flex-col bg-slate-950">
+      <header className="z-30 flex flex-wrap items-center justify-between gap-3 border-b border-slate-700/60 bg-slate-950/85 px-4 py-3 shadow-xl shadow-slate-950/20 backdrop-blur-2xl sm:px-5">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400/60" aria-hidden="true" />
+          <span className="flex h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_12px] shadow-emerald-400/80" aria-hidden="true" />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-white">
-              Room <span className="font-mono text-indigo-300">{room}</span>
+              Room <span className="font-mono text-cyan-300">{room}</span>
             </p>
             <p className="truncate text-xs text-slate-500">
-              {name} · {quality === 'auto' ? `AUTO · ${qualityPreset(activeQuality).label}` : `${preset.label} @${preset.frameRate}fps`}
+              <span className="text-slate-400">{name}</span> · {quality === 'auto' ? <span className="text-cyan-300">AUTO · {qualityPreset(activeQuality).label}</span> : preset.label}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
           <div className="relative">
             <button
               type="button"
               onClick={() => setShowInfo((open) => !open)}
               aria-expanded={showInfo}
-              className="rounded-lg border border-indigo-300/50 bg-indigo-500/80 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300/70"
+              className="rounded-xl border border-cyan-300/30 bg-cyan-400/10 px-3 py-2 text-xs font-semibold text-cyan-200 shadow-sm hover:bg-cyan-400/20"
             >
               Bagikan
             </button>
             {showInfo && (
-              <div className="absolute right-0 top-full z-30 mt-2 w-72 rounded-xl border border-white/50 bg-white/80 p-3 shadow-xl backdrop-blur-2xl">
-                <p className="mb-2 text-xs text-slate-600">Link room (tanpa nama):</p>
+              <div className="absolute right-0 top-full z-30 mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-slate-700 bg-slate-900/95 p-3 shadow-2xl shadow-slate-950/60 backdrop-blur-2xl">
+                <p className="mb-2 text-xs text-slate-400">Link room (tanpa nama):</p>
                 <input
                   readOnly
                   value={roomLink({ room, quality })}
                   onFocus={(event) => event.currentTarget.select()}
-                  className="w-full rounded-lg border border-slate-300 bg-white/70 px-2 py-1.5 font-mono text-[11px] text-slate-800"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-2 py-2 font-mono text-[11px] text-cyan-100"
                 />
                 <button
                   type="button"
                   onClick={() => navigator.clipboard?.writeText(roomLink({ room, quality }))}
-                  className="mt-2 w-full rounded-lg bg-indigo-500 px-2 py-1.5 text-xs font-semibold text-white hover:bg-indigo-600"
+                  className="mt-2 w-full rounded-xl bg-cyan-400 px-2 py-2 text-xs font-bold text-slate-950 hover:bg-cyan-300"
                 >
                   Salin link
                 </button>
@@ -259,7 +259,7 @@ export default function Room({ room, name, quality, session, onLeave, onQualityC
           <button
             type="button"
             onClick={handleDisconnect}
-            className="rounded-lg border border-red-400/40 bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-200 hover:bg-red-500/30"
+            className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-200 hover:bg-rose-500/20"
           >
             Keluar
           </button>

@@ -20,29 +20,55 @@ body,
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
-  background: linear-gradient(
-    135deg,
-    #c7d2fe 0%,
-    #e0e7ff 30%,
-    #fce7f3 70%,
-    #dbeafe 100%
-  );
+  color: #e2e8f0;
+  background: #070b16;
   background-attachment: fixed;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #22d3ee;
+  outline-offset: 2px;
+}
+
+::selection {
+  color: #cffafe;
+  background: #0e7490;
+}
+
+.hdvc-app-shell {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(34, 211, 238, 0.16), transparent 30rem),
+    radial-gradient(circle at 88% 18%, rgba(139, 92, 246, 0.18), transparent 28rem),
+    linear-gradient(145deg, #070b16 0%, #10172a 52%, #090d1b 100%);
+}
+
+.hdvc-glass {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.72);
+  box-shadow: 0 24px 80px rgba(2, 6, 23, 0.45), inset 0 1px rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(24px);
 }
 
 /* LiveKit light theme tuning supaya menyatu dengan Tailwind. */
 [data-lk-theme="default"] {
-  --lk-bg: #f1f5f9;
-  --lk-bg2: #ffffff;
-  --lk-border-color: rgba(255, 255, 255, 0.6);
-  --lk-control-bg: rgba(255, 255, 255, 0.65);
-  --lk-control-hover-bg: rgba(255, 255, 255, 0.85);
-  --lk-control-active-bg: #4f46e5;
-  --lk-control-active-hover-bg: #4338ca;
-  --lk-accent-bg: #4f46e5;
-  --lk-accent-fg: #ffffff;
+  --lk-bg: #0f172a;
+  --lk-bg2: #111827;
+  --lk-border-color: rgba(148, 163, 184, 0.22);
+  --lk-control-bg: rgba(30, 41, 59, 0.88);
+  --lk-control-hover-bg: rgba(51, 65, 85, 0.95);
+  --lk-control-active-bg: #0891b2;
+  --lk-control-active-hover-bg: #06b6d4;
+  --lk-accent-bg: #06b6d4;
+  --lk-accent-fg: #ecfeff;
   --lk-danger: #ef4444;
-  --lk-foreground: #1e293b;
+  --lk-foreground: #e2e8f0;
   --lk-border-radius: 0.75rem;
 }
 
@@ -124,7 +150,10 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(2, 6, 23, 0.82);
   padding: 0.5rem;
+  backdrop-filter: blur(20px);
 }
 
 .hdvc-room .hdvc-chat-panel {
@@ -133,7 +162,9 @@ body {
   inset: 0.75rem 0.75rem 4.5rem auto;
   width: min(22rem, calc(100% - 1.5rem));
   height: auto;
-  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 1rem;
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.6);
 }
 
 @container (max-width: 520px) {

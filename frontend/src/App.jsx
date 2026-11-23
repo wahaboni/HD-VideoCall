@@ -1,6 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import Lobby from './pages/Lobby.jsx';
 import { parseHash, buildHash } from './lib/hashRoute.js';
+import { roomRenderKey } from './lib/appState.js';
 
 // LiveKit components berat (~250 kB gzip). Lobby tetap ringan;
 // bundle room baru diunduh saat user benar-benar bergabung.
@@ -57,19 +58,21 @@ export default function App() {
 
   if (route.view === 'room') {
     return (
-      <Suspense fallback={<RoomFallback />}>
-        <Room
-          key={`${route.room}:${route.quality}`}
-          room={route.room}
-          name={route.name}
-          quality={route.quality}
-          session={session}
-          onLeave={handlers.onLeave}
-          onQualityChange={handlers.onQualityChange}
-        />
-      </Suspense>
+      <div className="hdvc-app-shell min-h-full">
+        <Suspense fallback={<RoomFallback />}>
+          <Room
+            key={roomRenderKey(route)}
+            room={route.room}
+            name={route.name}
+            quality={route.quality}
+            session={session}
+            onLeave={handlers.onLeave}
+            onQualityChange={handlers.onQualityChange}
+          />
+        </Suspense>
+      </div>
     );
   }
 
-  return <Lobby initialQuality={route.quality} onJoin={handlers.onJoin} />;
+  return <div className="hdvc-app-shell min-h-full"><Lobby initialQuality={route.quality} onJoin={handlers.onJoin} /></div>;
 }
